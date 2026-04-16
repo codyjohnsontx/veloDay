@@ -1,0 +1,50 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Carbon bicycle wheelset</title>
+  <desc id="desc">Two black carbon bicycle wheels on a warm neutral studio background.</desc>
+  <rect width="1200" height="900" fill="#f2efe7"/>
+  <rect y="610" width="1200" height="290" fill="#e8e1d4"/>
+  <ellipse cx="600" cy="664" rx="430" ry="42" fill="#d4cab9"/>
+  <g transform="translate(150 160)">
+    <circle cx="250" cy="330" r="218" fill="#101f1c"/>
+    <circle cx="250" cy="330" r="180" fill="#f2efe7"/>
+    <circle cx="250" cy="330" r="25" fill="#101f1c"/>
+    <circle cx="250" cy="330" r="13" fill="#dfeee8"/>
+    <g stroke="#34423f" stroke-width="5" stroke-linecap="round">
+      <path d="M250 330L250 124"/>
+      <path d="M250 330L353 152"/>
+      <path d="M250 330L428 227"/>
+      <path d="M250 330L456 330"/>
+      <path d="M250 330L428 433"/>
+      <path d="M250 330L353 508"/>
+      <path d="M250 330L250 536"/>
+      <path d="M250 330L147 508"/>
+      <path d="M250 330L72 433"/>
+      <path d="M250 330L44 330"/>
+      <path d="M250 330L72 227"/>
+      <path d="M250 330L147 152"/>
+    </g>
+    <circle cx="250" cy="330" r="205" stroke="#2f7d67" stroke-width="12"/>
+  </g>
+  <g transform="translate(550 160)">
+    <circle cx="250" cy="330" r="218" fill="#101f1c"/>
+    <circle cx="250" cy="330" r="180" fill="#f2efe7"/>
+    <circle cx="250" cy="330" r="25" fill="#101f1c"/>
+    <circle cx="250" cy="330" r="13" fill="#dfeee8"/>
+    <g stroke="#34423f" stroke-width="5" stroke-linecap="round">
+      <path d="M250 330L250 124"/>
+      <path d="M250 330L353 152"/>
+      <path d="M250 330L428 227"/>
+      <path d="M250 330L456 330"/>
+      <path d="M250 330L428 433"/>
+      <path d="M250 330L353 508"/>
+      <path d="M250 330L250 536"/>
+      <path d="M250 330L147 508"/>
+      <path d="M250 330L72 433"/>
+      <path d="M250 330L44 330"/>
+      <path d="M250 330L72 227"/>
+      <path d="M250 330L147 152"/>
+    </g>
+    <circle cx="250" cy="330" r="205" stroke="#2f7d67" stroke-width="12"/>
+  </g>
+  <path d="M381 631C475 597 719 595 817 630" stroke="#bdb19e" stroke-width="18" stroke-linecap="round"/>
+</svg>
