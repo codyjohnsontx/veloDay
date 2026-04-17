@@ -19,7 +19,7 @@ import { VerificationBadge } from "@/components/trust-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getListing, listings } from "@/lib/data";
+import { getListing, listings, offers } from "@/lib/data";
 import { currency, labelize, percent } from "@/lib/format";
 import { getSiteOrigin } from "@/lib/site-url";
 
@@ -83,6 +83,12 @@ export default async function ListingDetailPage({
   }
 
   const siteUrl = getSiteOrigin();
+
+  const offerIndex = offers.findIndex((o) => o.listingId === listing.id);
+  const threadHref =
+    offerIndex >= 0
+      ? `/messages/thread-${String(offerIndex + 1).padStart(3, "0")}`
+      : null;
 
   const productJsonLd = {
     "@context": "https://schema.org",
@@ -391,18 +397,45 @@ export default async function ListingDetailPage({
               </div>
 
               <div className="grid gap-2">
-                <Button size="lg" asChild>
-                  <Link href="/messages/thread-001">
+                {threadHref ? (
+                  <Button size="lg" asChild>
+                    <Link href={threadHref}>
+                      <BadgeDollarSign className="h-4 w-4" aria-hidden />
+                      Make offer
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    size="lg"
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Offers are coming soon"
+                  >
                     <BadgeDollarSign className="h-4 w-4" aria-hidden />
-                    Make offer
-                  </Link>
-                </Button>
-                <Button variant="outline" size="lg" asChild>
-                  <Link href="/messages/thread-001">
+                    Make offer (coming soon)
+                  </Button>
+                )}
+                {threadHref ? (
+                  <Button variant="outline" size="lg" asChild>
+                    <Link href={threadHref}>
+                      <MessageSquare className="h-4 w-4" aria-hidden />
+                      Message seller
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Messaging is coming soon"
+                  >
                     <MessageSquare className="h-4 w-4" aria-hidden />
-                    Message seller
-                  </Link>
-                </Button>
+                    Message seller (coming soon)
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="lg"

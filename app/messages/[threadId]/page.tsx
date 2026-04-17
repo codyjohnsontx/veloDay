@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   BadgeDollarSign,
@@ -19,8 +20,20 @@ export default async function MessageThreadPage({
   params: Promise<{ threadId: string }>;
 }) {
   const { threadId } = await params;
-  const index = Math.max(0, Number.parseInt(threadId.replace(/\D/g, ""), 10) - 1);
-  const offer = offers[Number.isFinite(index) && index < offers.length ? index : 0] ?? offers[0];
+  const digits = threadId.replace(/\D/g, "");
+  const parsed = Number.parseInt(digits, 10);
+  const index = parsed - 1;
+
+  if (
+    digits.length === 0 ||
+    !Number.isFinite(parsed) ||
+    index < 0 ||
+    index >= offers.length
+  ) {
+    notFound();
+  }
+
+  const offer = offers[index];
   const listing = getListing(offer.listingId);
 
   return (
