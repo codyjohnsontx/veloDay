@@ -55,7 +55,7 @@ export function ListingCard({
             </Badge>
           </div>
           <span
-            className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-ink shadow-sm backdrop-blur transition hover:bg-background hover:scale-105"
+            className="pointer-events-none absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-ink shadow-sm backdrop-blur"
             aria-hidden
           >
             <Heart className="h-4 w-4" />

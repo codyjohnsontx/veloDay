@@ -16,11 +16,26 @@ const bricolage = Bricolage_Grotesque({
   variable: "--font-display",
 });
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://veloday.com";
+const DEFAULT_SITE_URL = "https://veloday.com";
+
+function resolveSiteUrl(): URL {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const candidate = raw && raw.length > 0 ? raw : DEFAULT_SITE_URL;
+  const withProtocol = /^https?:\/\//i.test(candidate)
+    ? candidate
+    : `https://${candidate}`;
+  try {
+    return new URL(withProtocol);
+  } catch {
+    return new URL(DEFAULT_SITE_URL);
+  }
+}
+
+const siteUrlObject = resolveSiteUrl();
+const siteUrl = siteUrlObject.origin;
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: siteUrlObject,
   title: {
     default: "VeloDay — Verified Used Bikes, Frames & Wheelsets",
     template: "%s | VeloDay",
@@ -103,7 +118,9 @@ export default function RootLayout({
           Skip to content
         </a>
         <SiteHeader />
-        <div id="main-content">{children}</div>
+        <div id="main-content" tabIndex={-1}>
+          {children}
+        </div>
       </body>
     </html>
   );

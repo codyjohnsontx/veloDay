@@ -42,11 +42,16 @@ export default function HomePage() {
     Math.floor(listings.length / 2)
   ].price;
   const featured = featuredListings[0];
+  const heroLayout = featured
+    ? "lg:grid-cols-[1fr_440px]"
+    : "lg:grid-cols-1";
 
   return (
     <main>
       <section className="border-b border-border bg-card">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_440px] lg:px-8 lg:py-16">
+        <div
+          className={`mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:px-8 lg:py-16 ${heroLayout}`}
+        >
           <div className="flex flex-col justify-center animate-fade-in">
             <p className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-trust/20 bg-trust-soft px-3 py-1 text-xs font-semibold uppercase tracking-wide text-trust">
               <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
@@ -98,46 +103,48 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-          <div className="relative overflow-hidden rounded-2xl border border-border bg-background shadow-subtle">
-            <div className="relative aspect-[5/4] overflow-hidden bg-muted">
-              <Image
-                src={featured.heroImage}
-                alt={`Featured listing: ${featured.model.modelYear} ${featured.model.brand} ${featured.model.modelName}`}
-                fill
-                sizes="(min-width: 1024px) 440px, 100vw"
-                priority
-                className="object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/10 to-transparent" />
-              <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold text-trust backdrop-blur">
-                <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
-                Featured & verified
-              </div>
-              <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-4 text-primary-foreground">
-                <div>
-                  <h2 className="font-display text-xl font-semibold leading-tight">
-                    {featured.title}
-                  </h2>
-                  <p className="mt-1 text-xs text-primary-foreground/80">
-                    {featured.location}
+          {featured ? (
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-background shadow-subtle">
+              <div className="relative aspect-[5/4] overflow-hidden bg-muted">
+                <Image
+                  src={featured.heroImage}
+                  alt={`Featured listing: ${featured.model.modelYear} ${featured.model.brand} ${featured.model.modelName}`}
+                  fill
+                  sizes="(min-width: 1024px) 440px, 100vw"
+                  priority
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/10 to-transparent" />
+                <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold text-trust backdrop-blur">
+                  <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+                  Featured & verified
+                </div>
+                <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-4 text-primary-foreground">
+                  <div>
+                    <h2 className="font-display text-xl font-semibold leading-tight">
+                      {featured.title}
+                    </h2>
+                    <p className="mt-1 text-xs text-primary-foreground/80">
+                      {featured.location}
+                    </p>
+                  </div>
+                  <p className="text-2xl font-semibold tabular-nums">
+                    {currency(featured.price)}
                   </p>
                 </div>
-                <p className="text-2xl font-semibold tabular-nums">
-                  {currency(featured.price)}
-                </p>
+              </div>
+              <div className="space-y-4 p-5">
+                <div className="grid grid-cols-3 gap-2">
+                  <Metric label="Verified" value={verifiedCount.toString()} />
+                  <Metric label="Median" value={currency(medianPrice)} />
+                  <Metric label="Saved" value={featured.saves.toString()} />
+                </div>
+                <Button className="w-full" asChild>
+                  <Link href={`/listing/${featured.id}`}>Open listing</Link>
+                </Button>
               </div>
             </div>
-            <div className="space-y-4 p-5">
-              <div className="grid grid-cols-3 gap-2">
-                <Metric label="Verified" value={verifiedCount.toString()} />
-                <Metric label="Median" value={currency(medianPrice)} />
-                <Metric label="Saved" value={featured.saves.toString()} />
-              </div>
-              <Button className="w-full" asChild>
-                <Link href={`/listing/${featured.id}`}>Open listing</Link>
-              </Button>
-            </div>
-          </div>
+          ) : null}
         </div>
       </section>
 

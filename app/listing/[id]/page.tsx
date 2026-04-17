@@ -108,13 +108,15 @@ export default async function ListingDetailPage({
         "@type":
           listing.seller.sellerType === "private" ? "Person" : "Organization",
         name: listing.seller.name,
+        ...(listing.seller.reviewCount > 0 && {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: listing.seller.reviewScore,
+            reviewCount: listing.seller.reviewCount,
+          },
+        }),
       },
       areaServed: listing.shipsTo ?? listing.location,
-    },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: listing.seller.reviewScore,
-      reviewCount: listing.seller.reviewCount,
     },
   };
 
@@ -153,11 +155,11 @@ export default async function ListingDetailPage({
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
 
       <nav aria-label="Breadcrumb" className="mb-4">
@@ -450,6 +452,15 @@ export default async function ListingDetailPage({
       </div>
     </main>
   );
+}
+
+function serializeJsonLd(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
 }
 
 function Spec({ label, value }: { label: string; value: string }) {

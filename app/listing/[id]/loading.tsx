@@ -2,7 +2,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ListingLoading() {
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <main
+      role="status"
+      aria-busy="true"
+      aria-live="polite"
+      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
+    >
+      <span className="sr-only">Loading listing…</span>
       <Skeleton className="mb-4 h-4 w-32" />
       <Skeleton className="mb-3 h-10 w-3/4" />
       <Skeleton className="mb-6 h-5 w-48" />

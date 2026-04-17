@@ -3,7 +3,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SearchLoading() {
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <main
+      role="status"
+      aria-busy="true"
+      aria-live="polite"
+      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
+    >
+      <span className="sr-only">Loading search results…</span>
       <div className="mb-7 space-y-2">
         <Skeleton className="h-4 w-44" />
         <Skeleton className="h-10 w-3/4" />
