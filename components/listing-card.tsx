@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SerialTrustBadge, SellerTrustBadge } from "@/components/trust-badge";
-import { currency, labelize, percent } from "@/lib/format";
+import { currency, labelize } from "@/lib/format";
 import type { BikeListing } from "@/lib/types";
 
 export function ListingCard({
