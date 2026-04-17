@@ -24,7 +24,11 @@ export default async function MessageThreadPage({
   const listing = getListing(offer.listingId);
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8"
+    >
       <Button variant="ghost" asChild className="mb-5">
         <Link href="/dashboard">
           <ArrowLeft className="h-4 w-4" />

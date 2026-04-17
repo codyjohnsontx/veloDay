@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
 
 import { listings } from "@/lib/data";
+import { getSiteOrigin } from "@/lib/site-url";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://veloday.com";
+const siteUrl = getSiteOrigin();
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

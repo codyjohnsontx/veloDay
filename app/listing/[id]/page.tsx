@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getListing, listings } from "@/lib/data";
 import { currency, labelize, percent } from "@/lib/format";
+import { getSiteOrigin } from "@/lib/site-url";
 
 export function generateStaticParams() {
   return listings.map((listing) => ({ id: listing.id }));
@@ -81,8 +82,7 @@ export default async function ListingDetailPage({
     notFound();
   }
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://veloday.com";
+  const siteUrl = getSiteOrigin();
 
   const productJsonLd = {
     "@context": "https://schema.org",
@@ -152,7 +152,11 @@ export default async function ListingDetailPage({
   };
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
+    >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd) }}
@@ -399,9 +403,16 @@ export default async function ListingDetailPage({
                     Message seller
                   </Link>
                 </Button>
-                <Button variant="ghost" size="lg">
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  title="Save is coming soon"
+                >
                   <Heart className="h-4 w-4" aria-hidden />
-                  Save listing
+                  Save (coming soon)
                 </Button>
               </div>
             </CardContent>

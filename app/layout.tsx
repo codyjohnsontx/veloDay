@@ -3,6 +3,7 @@ import { Inter, Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 
 import { SiteHeader } from "@/components/site-header";
+import { resolveSiteUrl } from "@/lib/site-url";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,21 +16,6 @@ const bricolage = Bricolage_Grotesque({
   display: "swap",
   variable: "--font-display",
 });
-
-const DEFAULT_SITE_URL = "https://veloday.com";
-
-function resolveSiteUrl(): URL {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  const candidate = raw && raw.length > 0 ? raw : DEFAULT_SITE_URL;
-  const withProtocol = /^https?:\/\//i.test(candidate)
-    ? candidate
-    : `https://${candidate}`;
-  try {
-    return new URL(withProtocol);
-  } catch {
-    return new URL(DEFAULT_SITE_URL);
-  }
-}
 
 const siteUrlObject = resolveSiteUrl();
 const siteUrl = siteUrlObject.origin;
@@ -118,9 +104,7 @@ export default function RootLayout({
           Skip to content
         </a>
         <SiteHeader />
-        <div id="main-content" tabIndex={-1}>
-          {children}
-        </div>
+        {children}
       </body>
     </html>
   );

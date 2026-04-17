@@ -4,6 +4,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function SearchLoading() {
   return (
     <main
+      id="main-content"
+      tabIndex={-1}
       role="status"
       aria-busy="true"
       aria-live="polite"
@@ -15,7 +17,7 @@ export default function SearchLoading() {
         <Skeleton className="h-10 w-3/4" />
       </div>
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-        <div className="space-y-3">
+        <div className="hidden space-y-3 lg:block">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-40 w-full" />

@@ -3,6 +3,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function ListingLoading() {
   return (
     <main
+      id="main-content"
+      tabIndex={-1}
       role="status"
       aria-busy="true"
       aria-live="polite"
