@@ -39,9 +39,10 @@ export async function generateMetadata({
   }
 
   const title = `${listing.title} — ${currency(listing.price)}`;
+  const size = listing.frameSize ?? listing.wheelSize;
   const description = `${labelize(listing.condition.overallGrade)} ${labelize(listing.model.discipline)} ${labelize(
     listing.category,
-  )} in ${listing.location}. ${listing.frameSize ?? listing.wheelSize ?? ""} · ${labelize(
+  )} in ${listing.location}. ${size ? `${size} · ` : ""}${labelize(
     listing.serial.state,
   )} serial · ${labelize(listing.provenance.proofOfPurchase)} proof of purchase.`.trim();
 
