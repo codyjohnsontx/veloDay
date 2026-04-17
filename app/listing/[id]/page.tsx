@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -17,11 +19,60 @@ import { VerificationBadge } from "@/components/trust-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getListing, listings } from "@/lib/data";
+import { getListing, listings, offers } from "@/lib/data";
 import { currency, labelize, percent } from "@/lib/format";
+import { getSiteOrigin } from "@/lib/site-url";
 
 export function generateStaticParams() {
   return listings.map((listing) => ({ id: listing.id }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const listing = getListing(id);
+  if (!listing) {
+    return { title: "Listing not found" };
+  }
+
+  const title = `${listing.title} — ${currency(listing.price)}`;
+  const size = listing.frameSize ?? listing.wheelSize;
+  const description = `${labelize(listing.condition.overallGrade)} ${labelize(listing.model.discipline)} ${labelize(
+    listing.category,
+  )} in ${listing.location}. ${size ? `${size} · ` : ""}${labelize(
+    listing.serial.state,
+  )} serial · ${labelize(listing.provenance.proofOfPurchase)} proof of purchase.`.trim();
+
+  const heroImageUrl = listing.heroImage.startsWith("/")
+    ? `${getSiteOrigin()}${listing.heroImage}`
+    : listing.heroImage;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/listing/${listing.id}` },
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url: `/listing/${listing.id}`,
+      images: [
+        {
+          url: heroImageUrl,
+          alt: listing.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [heroImageUrl],
+    },
+  };
 }
 
 export default async function ListingDetailPage({
@@ -36,35 +87,173 @@ export default async function ListingDetailPage({
     notFound();
   }
 
+  const siteUrl = getSiteOrigin();
+
+  const offerIndex = offers.findIndex((o) => o.listingId === listing.id);
+  const threadHref =
+    offerIndex >= 0
+      ? `/messages/thread-${String(offerIndex + 1).padStart(3, "0")}`
+      : null;
+
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: listing.title,
+    image: [listing.heroImage, ...listing.gallery].filter(Boolean),
+    description: `${labelize(listing.condition.overallGrade)} condition ${labelize(
+      listing.model.discipline,
+    )} ${labelize(listing.category)} — ${listing.model.brand} ${listing.model.modelName} (${listing.model.modelYear})`,
+    brand: { "@type": "Brand", name: listing.model.brand },
+    model: listing.model.modelName,
+    sku: listing.id,
+    category: labelize(listing.category),
+    itemCondition: "https://schema.org/UsedCondition",
+    offers: {
+      "@type": "Offer",
+      url: `${siteUrl}/listing/${listing.id}`,
+      priceCurrency: "USD",
+      price: listing.price,
+      availability: "https://schema.org/InStock",
+      itemCondition: "https://schema.org/UsedCondition",
+      seller: {
+        "@type":
+          listing.seller.sellerType === "private" ? "Person" : "Organization",
+        name: listing.seller.name,
+        ...(listing.seller.reviewCount > 0 && {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: listing.seller.reviewScore,
+            reviewCount: listing.seller.reviewCount,
+          },
+        }),
+      },
+      areaServed: listing.shipsTo ?? listing.location,
+    },
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: siteUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Search",
+        item: `${siteUrl}/search`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: labelize(listing.category),
+        item: `${siteUrl}/search?category=${listing.category}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: listing.title,
+        item: `${siteUrl}/listing/${listing.id}`,
+      },
+    ],
+  };
+
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <Button variant="ghost" asChild className="mb-5">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
+    >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
+      />
+
+      <nav aria-label="Breadcrumb" className="mb-4">
+        <ol className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+          <li>
+            <Link href="/" className="hover:text-ink hover:underline">
+              Home
+            </Link>
+          </li>
+          <li aria-hidden>/</li>
+          <li>
+            <Link href="/search" className="hover:text-ink hover:underline">
+              Search
+            </Link>
+          </li>
+          <li aria-hidden>/</li>
+          <li>
+            <Link
+              href={`/search?category=${listing.category}`}
+              className="hover:text-ink hover:underline"
+            >
+              {labelize(listing.category)}
+            </Link>
+          </li>
+        </ol>
+      </nav>
+
+      <Button variant="ghost" asChild className="mb-4">
         <Link href="/search">
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" aria-hidden />
           Back to search
         </Link>
       </Button>
 
+      <header className="mb-6">
+        <div className="mb-3 flex flex-wrap gap-2">
+          <VerificationBadge label="Serial" state={listing.serial.state} />
+          <VerificationBadge
+            label="Proof"
+            state={listing.provenance.proofOfPurchase}
+          />
+          <Badge variant={listing.dealScore === "below-market" ? "trust" : "outline"}>
+            {labelize(listing.dealScore)}
+          </Badge>
+        </div>
+        <h1 className="font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl lg:text-5xl">
+          {listing.title}
+        </h1>
+        <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4" aria-hidden />
+          {listing.location}
+        </p>
+      </header>
+
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
         <section className="space-y-6">
-          <div className="overflow-hidden rounded-lg border border-border bg-card">
-            <div className="aspect-[16/10] bg-muted">
-              <img
+          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+            <div className="relative aspect-[16/10] bg-muted">
+              <Image
                 src={listing.heroImage}
-                alt={listing.title}
-                className="h-full w-full object-cover"
+                alt={`${listing.title} — hero photo`}
+                fill
+                sizes="(min-width: 1024px) 70vw, 100vw"
+                priority
+                className="object-cover"
               />
             </div>
             <div className="grid grid-cols-3 gap-2 p-3">
-              {listing.gallery.map((image) => (
+              {listing.gallery.map((image, idx) => (
                 <div
-                  key={image}
-                  className="aspect-[4/3] overflow-hidden rounded-md bg-muted"
+                  key={`${image}-${idx}`}
+                  className="relative aspect-[4/3] overflow-hidden rounded-lg bg-muted"
                 >
-                  <img
+                  <Image
                     src={image}
-                    alt={`${listing.title} gallery`}
-                    className="h-full w-full object-cover"
+                    alt={`${listing.title} — detail photo ${idx + 1}`}
+                    fill
+                    sizes="(min-width: 1024px) 220px, 33vw"
+                    className="object-cover"
                   />
                 </div>
               ))}
@@ -113,10 +302,10 @@ export default async function ListingDetailPage({
               </div>
               <div className="grid gap-5 md:grid-cols-2">
                 <div>
-                  <h3 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-ink">
-                    <Wrench className="h-4 w-4 text-trust" />
+                  <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-ink">
+                    <Wrench className="h-4 w-4 text-trust" aria-hidden />
                     Service notes
-                  </h3>
+                  </h2>
                   <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                     {listing.condition.serviceNotes.map((note) => (
                       <li key={note} className="rounded-md bg-muted/60 px-3 py-2">
@@ -126,9 +315,9 @@ export default async function ListingDetailPage({
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-sm font-black uppercase tracking-wide text-ink">
+                  <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-ink">
                     Disclosed defects
-                  </h3>
+                  </h2>
                   <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                     {listing.condition.defectTags.map((tag) => (
                       <li key={tag} className="rounded-md bg-muted/60 px-3 py-2">
@@ -146,9 +335,9 @@ export default async function ListingDetailPage({
               <CardTitle>Provenance and serial verification</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-lg border border-border bg-background p-4">
-                <h3 className="flex items-center gap-2 font-black text-ink">
-                  <CalendarCheck className="h-5 w-5 text-trust" />
+              <div className="rounded-xl border border-border bg-background p-4">
+                <h3 className="flex items-center gap-2 font-semibold text-ink">
+                  <CalendarCheck className="h-5 w-5 text-trust" aria-hidden />
                   Provenance
                 </h3>
                 <dl className="mt-4 space-y-3 text-sm">
@@ -167,9 +356,9 @@ export default async function ListingDetailPage({
                   />
                 </dl>
               </div>
-              <div className="rounded-lg border border-border bg-background p-4">
-                <h3 className="flex items-center gap-2 font-black text-ink">
-                  <ShieldCheck className="h-5 w-5 text-trust" />
+              <div className="rounded-xl border border-border bg-background p-4">
+                <h3 className="flex items-center gap-2 font-semibold text-ink">
+                  <ShieldCheck className="h-5 w-5 text-trust" aria-hidden />
                   Serial record
                 </h3>
                 <dl className="mt-4 space-y-3 text-sm">
@@ -192,29 +381,12 @@ export default async function ListingDetailPage({
         <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
           <Card>
             <CardContent className="space-y-5 p-5">
-              <div>
-                <div className="flex flex-wrap gap-2">
-                  <VerificationBadge label="Serial" state={listing.serial.state} />
-                  <VerificationBadge
-                    label="Proof"
-                    state={listing.provenance.proofOfPurchase}
-                  />
-                </div>
-                <h1 className="mt-4 text-3xl font-black leading-tight text-ink">
-                  {listing.title}
-                </h1>
-                <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  {listing.location}
-                </p>
-              </div>
-
               <div className="flex items-end justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-muted-foreground">
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                     Asking price
                   </p>
-                  <p className="text-4xl font-black text-ink">
+                  <p className="font-display text-4xl font-semibold tabular-nums text-ink">
                     {currency(listing.price)}
                   </p>
                 </div>
@@ -230,21 +402,55 @@ export default async function ListingDetailPage({
               </div>
 
               <div className="grid gap-2">
-                <Button size="lg" asChild>
-                  <Link href="/messages/thread-001">
-                    <BadgeDollarSign className="h-4 w-4" />
-                    Make offer
-                  </Link>
-                </Button>
-                <Button variant="outline" size="lg" asChild>
-                  <Link href="/messages/thread-001">
-                    <MessageSquare className="h-4 w-4" />
-                    Message seller
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="lg">
-                  <Heart className="h-4 w-4" />
-                  Save listing
+                {threadHref ? (
+                  <Button size="lg" asChild>
+                    <Link href={threadHref}>
+                      <BadgeDollarSign className="h-4 w-4" aria-hidden />
+                      Make offer
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    size="lg"
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Offers are coming soon"
+                  >
+                    <BadgeDollarSign className="h-4 w-4" aria-hidden />
+                    Make offer (coming soon)
+                  </Button>
+                )}
+                {threadHref ? (
+                  <Button variant="outline" size="lg" asChild>
+                    <Link href={threadHref}>
+                      <MessageSquare className="h-4 w-4" aria-hidden />
+                      Message seller
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Messaging is coming soon"
+                  >
+                    <MessageSquare className="h-4 w-4" aria-hidden />
+                    Message seller (coming soon)
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  title="Save is coming soon"
+                >
+                  <Heart className="h-4 w-4" aria-hidden />
+                  Save (coming soon)
                 </Button>
               </div>
             </CardContent>
@@ -256,7 +462,9 @@ export default async function ListingDetailPage({
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h2 className="text-xl font-black text-ink">{listing.seller.name}</h2>
+                <h2 className="font-display text-xl font-semibold text-ink">
+                  {listing.seller.name}
+                </h2>
                 <p className="text-sm text-muted-foreground">
                   {labelize(listing.seller.sellerType)} in {listing.seller.location}
                 </p>
@@ -280,9 +488,9 @@ export default async function ListingDetailPage({
                   className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-3 text-sm font-semibold"
                 >
                   {mode === "managed-shipping" ? (
-                    <Truck className="h-4 w-4 text-trust" />
+                    <Truck className="h-4 w-4 text-trust" aria-hidden />
                   ) : (
-                    <Bike className="h-4 w-4 text-trust" />
+                    <Bike className="h-4 w-4 text-trust" aria-hidden />
                   )}
                   {labelize(mode)}
                 </div>
@@ -295,13 +503,22 @@ export default async function ListingDetailPage({
   );
 }
 
+function serializeJsonLd(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
+
 function Spec({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border border-border bg-background px-3 py-3">
-      <p className="text-[10px] font-black uppercase tracking-wide text-muted-foreground">
+      <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
         {label}
       </p>
-      <p className="mt-1 truncate text-sm font-bold text-ink">{value}</p>
+      <p className="mt-1 truncate text-sm font-semibold text-ink">{value}</p>
     </div>
   );
 }
@@ -310,7 +527,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-bold text-ink">{value}</dd>
+      <dd className="text-right font-semibold text-ink">{value}</dd>
     </div>
   );
 }
@@ -318,10 +535,10 @@ function Row({ label, value }: { label: string; value: string }) {
 function MiniMetric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border border-border bg-background px-3 py-2 text-center">
-      <p className="text-[10px] font-black uppercase tracking-wide text-muted-foreground">
+      <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
         {label}
       </p>
-      <p className="mt-1 text-sm font-black text-ink">{value}</p>
+      <p className="mt-1 text-sm font-semibold tabular-nums text-ink">{value}</p>
     </div>
   );
 }

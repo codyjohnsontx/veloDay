@@ -9,6 +9,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "var(--font-sans)", "ui-sans-serif", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -51,6 +55,22 @@ const config: Config = {
       },
       boxShadow: {
         subtle: "0 12px 32px rgba(16, 32, 29, 0.08)",
+        card: "0 1px 2px rgba(16, 32, 29, 0.04), 0 0 0 1px rgba(16, 32, 29, 0.03)",
+        lift: "0 20px 40px -12px rgba(16, 32, 29, 0.18)",
+      },
+      keyframes: {
+        "fade-in": {
+          from: { opacity: "0", transform: "translateY(4px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+      },
+      animation: {
+        "fade-in": "fade-in 0.35s ease-out both",
+        shimmer: "shimmer 1.6s linear infinite",
       },
     },
   },

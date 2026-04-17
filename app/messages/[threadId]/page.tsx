@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   BadgeDollarSign,
@@ -18,12 +19,29 @@ export default async function MessageThreadPage({
 }: {
   params: Promise<{ threadId: string }>;
 }) {
-  await params;
-  const offer = offers[0];
+  const { threadId } = await params;
+  const digits = threadId.replace(/\D/g, "");
+  const parsed = Number.parseInt(digits, 10);
+  const index = parsed - 1;
+
+  if (
+    digits.length === 0 ||
+    !Number.isFinite(parsed) ||
+    index < 0 ||
+    index >= offers.length
+  ) {
+    notFound();
+  }
+
+  const offer = offers[index];
   const listing = getListing(offer.listingId);
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8"
+    >
       <Button variant="ghost" asChild className="mb-5">
         <Link href="/dashboard">
           <ArrowLeft className="h-4 w-4" />

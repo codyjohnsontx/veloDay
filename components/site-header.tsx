@@ -41,14 +41,17 @@ export function SiteHeader() {
           </Button>
         </div>
       </div>
-      <nav className="flex overflow-x-auto border-t border-border px-3 py-2 md:hidden">
+      <nav
+        aria-label="Primary"
+        className="flex overflow-x-auto border-t border-border px-3 py-2 md:hidden"
+      >
         {navItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="mr-2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="mr-2 inline-flex min-h-[44px] items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
           >
-            <item.icon className="h-4 w-4" />
+            <item.icon className="h-4 w-4" aria-hidden />
             {item.label}
           </Link>
         ))}
