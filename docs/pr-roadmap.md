@@ -40,13 +40,15 @@ Deliverables:
 
 - Store wizard form state in React state.
 - Update the live listing preview as fields change.
+- Add client-side validation with clear error messages for required fields and format constraints, including positive price values and serial number format.
 - Add a publish-readiness checklist for bike identity, condition, serial, provenance, price, and transaction mode.
 - Keep publish as prototype-only state.
 
 Acceptance:
 
 - User input visibly changes the preview.
-- Readiness score changes as required fields are completed.
+- Visible validation feedback appears in the live preview for invalid or incomplete fields.
+- Invalid entries block publish-readiness scoring until the validation rules pass.
 - `npm run build` passes.
 
 ## Slice 4: URL-Backed Search Filters
@@ -71,9 +73,9 @@ Goal: make buyer actions feel real without a backend.
 
 Deliverables:
 
-- Add local-storage backed saved listing state.
-- Add compare selection for up to three listings.
-- Add a compare view or panel with key spec/trust differences.
+- Support local-storage-backed saved listing state.
+- Enable selection to compare up to three listings.
+- Provide a comparison view or panel highlighting key spec and trust differences.
 
 Acceptance:
 
@@ -81,22 +83,47 @@ Acceptance:
 - Compare handles add/remove and max-selection states.
 - `npm run build` passes.
 
-## Slice 6: Image and Data Quality Pass
+## Slice 6: Image, Data, and Accessibility Quality Pass
 
-Goal: remove remaining generic media and make inventory presentation more credible.
+Goal: remove remaining generic media, make inventory presentation more credible, and verify baseline accessibility.
 
 Deliverables:
 
 - Replace unsuitable remote images with local assets or curated cycling-specific sources.
 - Add alt text that describes the listed item type.
 - Review mock listings for unrealistic or inconsistent field values.
+- Verify keyboard navigation across listing cards, filters, wizard steps, saved searches, and message actions.
+- Check color contrast against WCAG AA expectations for text, badges, controls, and status states.
+- Add or refine ARIA labels for complex components such as filters, the future compare panel, and wizard navigation.
+- Run a screen reader pass for search, listing detail, sell wizard, and dashboard flows.
 
 Acceptance:
 
 - No listing card shows obviously unrelated product imagery.
+- Keyboard navigation works for the primary interactive flows.
+- Text and control contrast meets WCAG AA expectations.
+- Complex components include appropriate accessible names and ARIA labels.
 - `npm run build` passes.
 
-## Slice 7: Deployment Prep
+## Slice 7: Testing Strategy
+
+Goal: add automated test coverage before deployment prep so feature PRs have stronger regression protection after Slice 6 and before Slice 8.
+
+Deliverables:
+
+- Add unit tests for core filtering, formatting, and readiness-scoring logic.
+- Add integration tests for search filters, saved listings, and compare behavior.
+- Add end-to-end tests for critical flows: search to listing detail, sell wizard readiness, and offer thread navigation.
+- Define practical coverage thresholds for the logic-heavy modules.
+- Update CI so tests run on pull requests before the build check.
+
+Acceptance:
+
+- CI runs lint, tests, and build on pull requests.
+- Test coverage thresholds are enforced for the selected logic modules.
+- `npm run build` passes.
+
+## Slice 8: Deployment Prep
 
 Goal: make the app ready for Vercel deployment.
 
