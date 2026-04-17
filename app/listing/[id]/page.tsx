@@ -46,6 +46,10 @@ export async function generateMetadata({
     listing.serial.state,
   )} serial · ${labelize(listing.provenance.proofOfPurchase)} proof of purchase.`.trim();
 
+  const heroImageUrl = listing.heroImage.startsWith("/")
+    ? `${getSiteOrigin()}${listing.heroImage}`
+    : listing.heroImage;
+
   return {
     title,
     description,
@@ -57,7 +61,7 @@ export async function generateMetadata({
       url: `/listing/${listing.id}`,
       images: [
         {
-          url: listing.heroImage,
+          url: heroImageUrl,
           alt: listing.title,
         },
       ],
@@ -66,7 +70,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title,
       description,
-      images: [listing.heroImage],
+      images: [heroImageUrl],
     },
   };
 }
