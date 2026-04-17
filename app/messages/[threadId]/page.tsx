@@ -18,8 +18,9 @@ export default async function MessageThreadPage({
 }: {
   params: Promise<{ threadId: string }>;
 }) {
-  await params;
-  const offer = offers[0];
+  const { threadId } = await params;
+  const index = Math.max(0, Number.parseInt(threadId.replace(/\D/g, ""), 10) - 1);
+  const offer = offers[Number.isFinite(index) && index < offers.length ? index : 0] ?? offers[0];
   const listing = getListing(offer.listingId);
 
   return (
