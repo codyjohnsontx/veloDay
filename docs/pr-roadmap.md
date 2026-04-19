@@ -2,6 +2,29 @@
 
 This roadmap breaks the next work into reviewable vertical slices. Each slice should ship as its own branch and PR with a passing `npm run build`.
 
+## PR granularity and frequency
+
+Keep pull requests **small and frequent** so reviewers and GitHub Actions (lint, build, and later tests) run on every change, not on large batches.
+
+**Rules of thumb**
+
+- **One PR = one reviewable story** — something a reviewer can follow in about fifteen minutes, with a single clear outcome tied to acceptance criteria below.
+- **Sub-slice large roadmap items** — a numbered slice in this doc may ship as two or three PRs if each still passes `npm run build` and has its own branch and description.
+- **Do not mix unrelated themes** in one PR (for example: identity renames, search URL behavior, sell wizard state, localStorage, accessibility, and test harness changes should stay separate unless they are inseparable).
+
+**Splitting upcoming slices (examples)**
+
+- **Slice 5 (saved + compare):** PR A — localStorage saved listings only (save/remove, survives refresh). PR B — compare selection (max three) and comparison panel or route.
+- **Slice 6 (quality pass):** PR A — imagery and alt text. PR B — keyboard navigation and ARIA on filters and cards. PR C — contrast and badge semantics.
+- **Slice 7 (testing):** PR A — unit tests for pure helpers plus CI `npm test`. PR B — integration or E2E for one or two critical flows, then widen coverage.
+
+**Git and GitHub hygiene**
+
+- **Branch names:** prefer `slice-5a-saved-listings`, `docs/pr-roadmap`, or `fix/search-url-sync` so the PR title can mirror the work.
+- **PR description:** paste only the **acceptance bullets** that apply from this doc; link to the relevant slice or sub-slice.
+- **Size guard:** if the diff is much beyond a few hundred lines or touches many unrelated areas, split before opening the PR.
+- **Stacked work:** merge the first PR, then rebase the follow-up branch onto `main`, unless the team explicitly agrees on a short-lived integration branch.
+
 ## Slice 1: Review Infrastructure
 
 Goal: make future PRs easy to review and automatically validate.
