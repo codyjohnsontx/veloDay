@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Filter, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
 
 import { ListingCard } from "@/components/listing-card";
@@ -8,71 +9,43 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { currency, labelize } from "@/lib/format";
-import type {
-  BikeListing,
-  ConditionGrade,
-  Discipline,
-  ListingCategory,
-  SellerType,
-  TransactionMode,
-} from "@/lib/types";
+import {
+  defaultSearchFilters,
+  filterAndSortListings,
+  parseSearchFilters,
+  serializeSearchFilters,
+  type SearchFilters,
+} from "@/lib/search-filters";
+import type { BikeListing } from "@/lib/types";
 
-type SortKey = "recommended" | "newest" | "price-low" | "deal-score" | "days";
-
-interface Filters {
-  query: string;
-  category: "all" | ListingCategory;
-  discipline: "all" | Discipline;
-  condition: "all" | ConditionGrade;
-  sellerType: "all" | SellerType;
-  transactionMode: "all" | TransactionMode;
-  verifiedSerial: boolean;
-  proofOfPurchase: boolean;
-  maxPrice: number;
-  sort: SortKey;
-}
-
-const initialFilters: Filters = {
-  query: "",
-  category: "all",
-  discipline: "all",
-  condition: "all",
-  sellerType: "all",
-  transactionMode: "all",
-  verifiedSerial: false,
-  proofOfPurchase: false,
-  maxPrice: 8000,
-  sort: "recommended",
-};
-
-const categoryOptions: Array<"all" | ListingCategory> = [
+const categoryOptions: Array<"all" | SearchFilters["category"]> = [
   "all",
   "complete-bike",
   "frame",
   "wheelset",
 ];
-const disciplineOptions: Array<"all" | Discipline> = [
+const disciplineOptions: Array<"all" | SearchFilters["discipline"]> = [
   "all",
   "road",
   "gravel",
   "mountain",
   "e-bike",
 ];
-const conditionOptions: Array<"all" | ConditionGrade> = [
+const conditionOptions: Array<"all" | SearchFilters["condition"]> = [
   "all",
   "excellent",
   "very-good",
   "good",
   "fair",
 ];
-const sellerOptions: Array<"all" | SellerType> = [
+const sellerOptions: Array<"all" | SearchFilters["sellerType"]> = [
   "all",
   "private",
   "shop",
   "consignment",
   "certified-partner",
 ];
-const transactionOptions: Array<"all" | TransactionMode> = [
+const transactionOptions: Array<"all" | SearchFilters["transactionMode"]> = [
   "all",
   "local-pickup",
   "managed-shipping",
@@ -80,54 +53,33 @@ const transactionOptions: Array<"all" | TransactionMode> = [
 ];
 
 export function SearchExperience({ listings }: { listings: BikeListing[] }) {
-  const [filters, setFilters] = useState<Filters>(initialFilters);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [filters, setFilters] = useState<SearchFilters>(() =>
+    parseSearchFilters(searchParams),
+  );
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  const filtered = useMemo(() => {
-    const matches = listings.filter((listing) => {
-      const query = filters.query.trim().toLowerCase();
-      const queryMatch =
-        query.length === 0 ||
-        [
-          listing.title,
-          listing.model.brand,
-          listing.model.modelFamily,
-          listing.location,
-          listing.seller.name,
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(query);
+  useEffect(() => {
+    const qs = serializeSearchFilters(filters);
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    router.replace(url, { scroll: false });
+  }, [filters, pathname, router]);
 
-      return (
-        queryMatch &&
-        (filters.category === "all" || listing.category === filters.category) &&
-        (filters.discipline === "all" ||
-          listing.model.discipline === filters.discipline) &&
-        (filters.condition === "all" ||
-          listing.condition.overallGrade === filters.condition) &&
-        (filters.sellerType === "all" ||
-          listing.seller.sellerType === filters.sellerType) &&
-        (filters.transactionMode === "all" ||
-          listing.transactionModes.includes(filters.transactionMode)) &&
-        (!filters.verifiedSerial || listing.serial.state === "verified") &&
-        (!filters.proofOfPurchase ||
-          listing.provenance.proofOfPurchase === "verified") &&
-        listing.price <= filters.maxPrice
-      );
-    });
+  useEffect(() => {
+    const fromUrl = parseSearchFilters(searchParams);
+    setFilters((prev) =>
+      serializeSearchFilters(prev) === serializeSearchFilters(fromUrl)
+        ? prev
+        : fromUrl,
+    );
+  }, [searchParams]);
 
-    return [...matches].sort((a, b) => {
-      if (filters.sort === "newest") return a.daysOnMarket - b.daysOnMarket;
-      if (filters.sort === "price-low") return a.price - b.price;
-      if (filters.sort === "days") return b.daysOnMarket - a.daysOnMarket;
-      if (filters.sort === "deal-score") {
-        const rank = { "below-market": 0, fair: 1, premium: 2 };
-        return rank[a.dealScore] - rank[b.dealScore];
-      }
-      return b.saves + b.inquiries * 4 - (a.saves + a.inquiries * 4);
-    });
-  }, [filters, listings]);
+  const filtered = useMemo(
+    () => filterAndSortListings(listings, filters),
+    [filters, listings],
+  );
 
   const activeLabels = [
     filters.category !== "all" && labelize(filters.category),
@@ -137,7 +89,7 @@ export function SearchExperience({ listings }: { listings: BikeListing[] }) {
     filters.transactionMode !== "all" && labelize(filters.transactionMode),
     filters.verifiedSerial && "Verified serial",
     filters.proofOfPurchase && "Proof of purchase",
-    filters.maxPrice < 8000 && `Under ${currency(filters.maxPrice)}`,
+    filters.maxPrice < defaultSearchFilters.maxPrice && `Under ${currency(filters.maxPrice)}`,
   ].filter(Boolean);
 
   return (
@@ -162,7 +114,7 @@ export function SearchExperience({ listings }: { listings: BikeListing[] }) {
           onChange={(event) =>
             setFilters((current) => ({
               ...current,
-              sort: event.target.value as SortKey,
+              sort: event.target.value as SearchFilters["sort"],
             }))
           }
           className="h-11 rounded-md border border-input bg-background px-3 text-sm font-semibold"
@@ -195,7 +147,7 @@ export function SearchExperience({ listings }: { listings: BikeListing[] }) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setFilters(initialFilters)}
+            onClick={() => setFilters(defaultSearchFilters)}
           >
             <RotateCcw className="h-4 w-4" />
             Reset
@@ -229,7 +181,7 @@ export function SearchExperience({ listings }: { listings: BikeListing[] }) {
               <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
                 Broaden the price, trust, or transaction filters to see more bikes.
               </p>
-              <Button className="mt-5" onClick={() => setFilters(initialFilters)}>
+              <Button className="mt-5" onClick={() => setFilters(defaultSearchFilters)}>
                 Reset filters
               </Button>
             </div>
@@ -244,8 +196,8 @@ function FilterPanel({
   filters,
   setFilters,
 }: {
-  filters: Filters;
-  setFilters: React.Dispatch<React.SetStateAction<Filters>>;
+  filters: SearchFilters;
+  setFilters: React.Dispatch<React.SetStateAction<SearchFilters>>;
 }) {
   return (
     <div className="sticky top-24 space-y-5 rounded-lg border border-border bg-card p-4 shadow-sm">
@@ -260,7 +212,7 @@ function FilterPanel({
         onChange={(value) =>
           setFilters((current) => ({
             ...current,
-            category: value as Filters["category"],
+            category: value as SearchFilters["category"],
           }))
         }
       />
@@ -271,7 +223,7 @@ function FilterPanel({
         onChange={(value) =>
           setFilters((current) => ({
             ...current,
-            discipline: value as Filters["discipline"],
+            discipline: value as SearchFilters["discipline"],
           }))
         }
       />
@@ -282,7 +234,7 @@ function FilterPanel({
         onChange={(value) =>
           setFilters((current) => ({
             ...current,
-            condition: value as Filters["condition"],
+            condition: value as SearchFilters["condition"],
           }))
         }
       />
@@ -293,7 +245,7 @@ function FilterPanel({
         onChange={(value) =>
           setFilters((current) => ({
             ...current,
-            sellerType: value as Filters["sellerType"],
+            sellerType: value as SearchFilters["sellerType"],
           }))
         }
       />
@@ -304,7 +256,7 @@ function FilterPanel({
         onChange={(value) =>
           setFilters((current) => ({
             ...current,
-            transactionMode: value as Filters["transactionMode"],
+            transactionMode: value as SearchFilters["transactionMode"],
           }))
         }
       />
