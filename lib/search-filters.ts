@@ -9,6 +9,13 @@ import type {
 
 export type SortKey = "recommended" | "newest" | "price-low" | "deal-score" | "days";
 
+const MAX_QUERY_LEN = 200;
+
+/** Same normalization as URL parse/serialize: trim and cap length. */
+export function normalizeSearchQuery(raw: string): string {
+  return raw.trim().slice(0, MAX_QUERY_LEN);
+}
+
 export interface SearchFilters {
   query: string;
   category: "all" | ListingCategory;
@@ -77,18 +84,21 @@ export const filterTransactionOptions: ReadonlyArray<"all" | TransactionMode> = 
   "inspection-partner",
 ];
 
-const CATEGORIES = new Set(filterCategoryOptions);
-const DISCIPLINES = new Set(filterDisciplineOptions);
-const CONDITIONS = new Set(filterConditionOptions);
-const SELLERS = new Set(filterSellerOptions);
-const TXNS = new Set(filterTransactionOptions);
-const SORTS = new Set<SortKey>([
+/** Sort keys for URL validation, parsing, and the sort `<select>` (single source of truth). */
+export const filterSortOptions = [
   "recommended",
   "newest",
   "price-low",
   "deal-score",
   "days",
-]);
+] as const satisfies readonly SortKey[];
+
+const CATEGORIES = new Set(filterCategoryOptions);
+const DISCIPLINES = new Set(filterDisciplineOptions);
+const CONDITIONS = new Set(filterConditionOptions);
+const SELLERS = new Set(filterSellerOptions);
+const TXNS = new Set(filterTransactionOptions);
+const SORTS = new Set<SortKey>(filterSortOptions);
 
 function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
@@ -97,8 +107,7 @@ function clamp(n: number, min: number, max: number) {
 export type SearchParamSource = Pick<URLSearchParams, "get">;
 
 export function parseSearchFilters(params: SearchParamSource): SearchFilters {
-  const rawQ = params.get("q") ?? "";
-  const q = rawQ.trim().slice(0, 200);
+  const q = normalizeSearchQuery(params.get("q") ?? "");
   const category = params.get("category");
   const discipline = params.get("discipline");
   const condition = params.get("condition");
@@ -146,7 +155,8 @@ export function parseSearchFilters(params: SearchParamSource): SearchFilters {
 
 export function serializeSearchFilters(filters: SearchFilters): string {
   const p = new URLSearchParams();
-  if (filters.query.trim()) p.set("q", filters.query.trim());
+  const qNorm = normalizeSearchQuery(filters.query);
+  if (qNorm) p.set("q", qNorm);
   if (filters.category !== "all") p.set("category", filters.category);
   if (filters.discipline !== "all") p.set("discipline", filters.discipline);
   if (filters.condition !== "all") p.set("condition", filters.condition);
@@ -166,7 +176,7 @@ export function filterAndSortListings(
   filters: SearchFilters,
 ): BikeListing[] {
   const matches = listings.filter((listing) => {
-    const query = filters.query.trim().toLowerCase();
+    const query = normalizeSearchQuery(filters.query).toLowerCase();
     const queryMatch =
       query.length === 0 ||
       [

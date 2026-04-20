@@ -16,12 +16,22 @@ import {
   filterConditionOptions,
   filterDisciplineOptions,
   filterSellerOptions,
+  filterSortOptions,
   filterTransactionOptions,
   parseSearchFilters,
   serializeSearchFilters,
   type SearchFilters,
+  type SortKey,
 } from "@/lib/search-filters";
 import type { BikeListing } from "@/lib/types";
+
+const sortOptionLabels: Record<SortKey, string> = {
+  recommended: "Recommended",
+  newest: "Newest",
+  "price-low": "Price low",
+  "deal-score": "Deal score",
+  days: "Days on market",
+};
 
 export function SearchExperience({ listings }: { listings: BikeListing[] }) {
   const router = useRouter();
@@ -35,6 +45,10 @@ export function SearchExperience({ listings }: { listings: BikeListing[] }) {
   useEffect(() => {
     const qs = serializeSearchFilters(filters);
     const url = qs ? `${pathname}?${qs}` : pathname;
+    if (typeof window !== "undefined") {
+      const current = `${window.location.pathname}${window.location.search}`;
+      if (current === url) return;
+    }
     router.replace(url, { scroll: false });
   }, [filters, pathname, router]);
 
@@ -91,11 +105,11 @@ export function SearchExperience({ listings }: { listings: BikeListing[] }) {
           className="h-11 rounded-md border border-input bg-background px-3 text-sm font-semibold"
           aria-label="Sort listings"
         >
-          <option value="recommended">Recommended</option>
-          <option value="newest">Newest</option>
-          <option value="price-low">Price low</option>
-          <option value="deal-score">Deal score</option>
-          <option value="days">Days on market</option>
+          {filterSortOptions.map((key) => (
+            <option key={key} value={key}>
+              {sortOptionLabels[key]}
+            </option>
+          ))}
         </select>
         <Button
           variant="outline"
