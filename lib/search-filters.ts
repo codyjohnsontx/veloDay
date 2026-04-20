@@ -9,6 +9,10 @@ import type {
 
 export type SortKey = "recommended" | "newest" | "price-low" | "deal-score" | "days";
 
+/** Slider and URL `max` clamp bounds (single source of truth). */
+export const PRICE_MIN = 1000;
+export const PRICE_MAX = 8000;
+
 const MAX_QUERY_LEN = 200;
 
 /** Same normalization as URL parse/serialize: trim and cap length. */
@@ -38,7 +42,7 @@ export const defaultSearchFilters: SearchFilters = {
   transactionMode: "all",
   verifiedSerial: false,
   proofOfPurchase: false,
-  maxPrice: 8000,
+  maxPrice: PRICE_MAX,
   sort: "recommended",
 };
 
@@ -104,6 +108,23 @@ function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
 }
 
+/**
+ * Parse `max` URL param into max price.
+ * - Missing or blank → default slider high (`PRICE_MAX`).
+ * - Non-numeric → treat like missing (stay at default); avoids coercing garbage into a clamped edge.
+ * - Finite numeric → clamp to [PRICE_MIN, PRICE_MAX] (so low values become PRICE_MIN, high become PRICE_MAX).
+ */
+function parseMaxPriceParam(maxRaw: string | null): number {
+  if (maxRaw === null || maxRaw.trim() === "") {
+    return defaultSearchFilters.maxPrice;
+  }
+  const n = Number(maxRaw);
+  if (!Number.isFinite(n)) {
+    return defaultSearchFilters.maxPrice;
+  }
+  return clamp(Math.round(n), PRICE_MIN, PRICE_MAX);
+}
+
 export type SearchParamSource = Pick<URLSearchParams, "get">;
 
 export function parseSearchFilters(params: SearchParamSource): SearchFilters {
@@ -116,13 +137,7 @@ export function parseSearchFilters(params: SearchParamSource): SearchFilters {
   const maxRaw = params.get("max");
   const sort = params.get("sort");
 
-  let maxPrice = defaultSearchFilters.maxPrice;
-  if (maxRaw !== null && maxRaw !== "") {
-    const n = Number(maxRaw);
-    if (!Number.isNaN(n)) {
-      maxPrice = clamp(Math.round(n), 1000, 8000);
-    }
-  }
+  const maxPrice = parseMaxPriceParam(maxRaw);
 
   return {
     query: q,
