@@ -1,13 +1,11 @@
-import type { ConditionGrade, ListingCategory, VerificationState } from "@/lib/types";
+import type {
+  ConditionGrade,
+  ListingCategory,
+  ProvenanceRecord,
+  VerificationState,
+} from "@/lib/types";
 
-export type OwnershipChoice =
-  | "original-owner"
-  | "second-owner"
-  | "shop-owned"
-  | "demo"
-  | "race"
-  | "rental"
-  | "";
+export type WizardOwnershipType = ProvenanceRecord["ownershipType"] | "";
 
 export interface WizardFormState {
   brand: string;
@@ -24,7 +22,7 @@ export interface WizardFormState {
   serviceDate: string;
   maskedSerial: string;
   proofOfPurchase: VerificationState | "";
-  ownershipType: OwnershipChoice;
+  ownershipType: WizardOwnershipType;
   theftCheckStatus: "clear" | "pending" | "not-checked" | "";
   price: string;
   obo: boolean;
@@ -59,13 +57,11 @@ export const initialWizardFormState: WizardFormState = {
   region: "",
 };
 
-/** Masked (e.g. WSBC****8241) or full 8–24 alphanumeric serial. */
+/** Public masked serial only (e.g. WSBC****8241). Full unmasked serials are not accepted here. */
 export function isValidSerialFormat(raw: string): boolean {
   const s = raw.trim().toUpperCase();
-  if (s.length < 8 || s.length > 32) return false;
   const masked = /^[A-Z0-9]{2,10}\*{2,}[A-Z0-9]{2,6}$/;
-  const full = /^[A-Z0-9]{8,24}$/;
-  return masked.test(s) || full.test(s);
+  return masked.test(s);
 }
 
 export function parsePrice(value: string): number | null {
@@ -128,7 +124,7 @@ export function evaluateReadiness(state: WizardFormState): {
   const serialOk = isValidSerialFormat(state.maskedSerial);
   if (!serialOk) {
     fieldErrors.maskedSerial =
-      "Use a masked serial (e.g. WSBC****8241) or an 8–24 character alphanumeric serial.";
+      "Use a masked serial for public display (e.g. WSBC****8241).";
   }
   if (!state.proofOfPurchase) fieldErrors.proofOfPurchase = "Select proof-of-purchase status.";
   if (!state.ownershipType) fieldErrors.ownershipType = "Select ownership history.";
@@ -223,6 +219,7 @@ export function buildPreviewTitle(state: WizardFormState): string {
 export function buildPreviewSubtitle(state: WizardFormState): string {
   const parts: string[] = [];
   if (state.frameSize.trim()) parts.push(state.frameSize.trim());
+  if (state.region.trim()) parts.push(state.region.trim());
   const serialOk = isValidSerialFormat(state.maskedSerial);
   parts.push(serialOk ? "serial format OK" : "serial needs valid format");
   if (state.proofOfPurchase === "verified") parts.push("proof verified");
