@@ -60,7 +60,7 @@ export const initialWizardFormState: WizardFormState = {
 /** Public masked serial only (e.g. WSBC****8241). Full unmasked serials are not accepted here. */
 export function isValidSerialFormat(raw: string): boolean {
   const s = raw.trim().toUpperCase();
-  const masked = /^[A-Z0-9]{2,10}\*{2,}[A-Z0-9]{2,6}$/;
+  const masked = /^[A-Z0-9]{2,10}\*{2,8}[A-Z0-9]{2,6}$/;
   return masked.test(s);
 }
 
@@ -118,7 +118,10 @@ export function evaluateReadiness(state: WizardFormState): {
 
   if (!state.conditionGrade) fieldErrors.conditionGrade = "Select an overall condition grade.";
   const miles = parseMileage(state.mileage);
-  if (miles === null) fieldErrors.mileage = "Enter a non-negative mileage estimate.";
+  if (miles === null) {
+    fieldErrors.mileage =
+      "Enter whole miles as digits only, from 0 through 250,000.";
+  }
   if (!state.serviceDate.trim()) fieldErrors.serviceDate = "Last major service date is required.";
 
   const serialOk = isValidSerialFormat(state.maskedSerial);
