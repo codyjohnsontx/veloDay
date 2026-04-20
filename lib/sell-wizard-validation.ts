@@ -75,14 +75,20 @@ export function parsePrice(value: string): number | null {
   return n;
 }
 
+const DIGITS_ONLY = /^\d+$/;
+
 export function parseModelYear(value: string): number | null {
-  const n = Number.parseInt(value.trim(), 10);
+  const s = value.trim();
+  if (!DIGITS_ONLY.test(s)) return null;
+  const n = Number.parseInt(s, 10);
   if (!Number.isFinite(n) || n < 1990 || n > 2030) return null;
   return n;
 }
 
 export function parseMileage(value: string): number | null {
-  const n = Number.parseInt(value.trim(), 10);
+  const s = value.trim();
+  if (!DIGITS_ONLY.test(s)) return null;
+  const n = Number.parseInt(s, 10);
   if (!Number.isFinite(n) || n < 0) return null;
   if (n > 250_000) return null;
   return n;

@@ -224,6 +224,22 @@ export function SellWizard() {
                   ) : (
                     <Badge variant="outline">Condition not set</Badge>
                   )}
+                  {(() => {
+                    const tags = form.defectTags
+                      .split(",")
+                      .map((t) => t.trim())
+                      .filter(Boolean);
+                    if (tags.length === 0) {
+                      return (
+                        <Badge variant="outline">No defects listed</Badge>
+                      );
+                    }
+                    return tags.map((tag, index) => (
+                      <Badge key={`${tag}-${index}`} variant="secondary">
+                        {tag}
+                      </Badge>
+                    ));
+                  })()}
                 </div>
               </div>
             </div>
