@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 
+import { BuyerActionsProvider } from "@/components/buyer-actions-provider";
+import { CompareTray } from "@/components/compare-tray";
 import { SiteHeader } from "@/components/site-header";
 import { resolveSiteUrl } from "@/lib/site-url";
 
@@ -97,14 +99,17 @@ export default function RootLayout({
       className={`${inter.variable} ${bricolage.variable}`}
     >
       <body className="font-sans">
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
-        >
-          Skip to content
-        </a>
-        <SiteHeader />
-        {children}
+        <BuyerActionsProvider>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
+          >
+            Skip to content
+          </a>
+          <SiteHeader />
+          {children}
+          <CompareTray />
+        </BuyerActionsProvider>
       </body>
     </html>
   );

@@ -73,7 +73,7 @@ export default function DashboardPage() {
           </div>
           <div className="grid gap-5 md:grid-cols-2">
             {sellerListings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
+              <ListingCard key={listing.id} listing={listing} showBuyerActions={false} />
             ))}
           </div>
         </div>
