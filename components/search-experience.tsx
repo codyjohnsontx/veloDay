@@ -18,6 +18,7 @@ import {
   filterSellerOptions,
   filterSortOptions,
   filterTransactionOptions,
+  normalizeSearchQuery,
   parseSearchFilters,
   PRICE_MAX,
   PRICE_MIN,
@@ -34,8 +35,6 @@ const sortOptionLabels = {
   days: "Days on market",
 } satisfies Record<(typeof filterSortOptions)[number], string>;
 
-const URL_REPLACE_DEBOUNCE_MS = 280;
-
 export function SearchExperience({ listings }: { listings: BikeListing[] }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -50,41 +49,17 @@ export function SearchExperience({ listings }: { listings: BikeListing[] }) {
     serializedFiltersRef.current = serializeSearchFilters(filters);
   }, [filters]);
 
-  const urlReplaceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const didInitialUrlReplaceRef = useRef(false);
-
   useEffect(() => {
-    const run = () => {
-      const qs = serializeSearchFilters(filters);
-      const url = qs ? `${pathname}?${qs}` : pathname;
-      if (typeof window !== "undefined") {
-        const current = `${window.location.pathname}${window.location.search}`;
-        if (current === url) return;
-      }
-      router.replace(url, { scroll: false });
-    };
-
-    if (!didInitialUrlReplaceRef.current) {
-      didInitialUrlReplaceRef.current = true;
-      run();
-      return;
+    const qs = serializeSearchFilters(filters);
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    if (typeof window !== "undefined") {
+      const current = `${window.location.pathname}${window.location.search}`;
+      if (current === url) return;
     }
-
-    if (urlReplaceTimerRef.current) clearTimeout(urlReplaceTimerRef.current);
-    urlReplaceTimerRef.current = setTimeout(run, URL_REPLACE_DEBOUNCE_MS);
-    return () => {
-      if (urlReplaceTimerRef.current) {
-        clearTimeout(urlReplaceTimerRef.current);
-        urlReplaceTimerRef.current = null;
-      }
-    };
+    router.replace(url, { scroll: false });
   }, [filters, pathname, router]);
 
   useEffect(() => {
-    if (urlReplaceTimerRef.current) {
-      clearTimeout(urlReplaceTimerRef.current);
-      urlReplaceTimerRef.current = null;
-    }
     const fromUrl = parseSearchFilters(searchParams);
     const serializedFromUrl = serializeSearchFilters(fromUrl);
     const cached = serializedFiltersRef.current;
@@ -118,7 +93,7 @@ export function SearchExperience({ listings }: { listings: BikeListing[] }) {
             onChange={(event) =>
               setFilters((current) => ({
                 ...current,
-                query: event.target.value,
+                query: normalizeSearchQuery(event.target.value),
               }))
             }
             className="h-11 pl-10"
