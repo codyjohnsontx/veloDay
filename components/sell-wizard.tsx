@@ -184,7 +184,11 @@ export function SellWizard() {
             </div>
 
             {Object.keys(fieldErrors).length > 0 && (
-              <ul className="mt-3 space-y-1 rounded-md border border-trust-danger/30 bg-red-50 p-3 text-sm text-red-900 dark:bg-red-950/40 dark:text-red-100">
+              <ul
+                aria-live="polite"
+                aria-atomic="true"
+                className="mt-3 space-y-1 rounded-md border border-trust-danger/30 bg-red-50 p-3 text-sm text-red-900 dark:bg-red-950/40 dark:text-red-100"
+              >
                 {[...new Set(Object.values(fieldErrors))].map((message) => (
                   <li key={message}>{message}</li>
                 ))}

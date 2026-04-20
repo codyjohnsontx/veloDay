@@ -76,10 +76,11 @@ export function parsePrice(value: string): number | null {
 }
 
 const DIGITS_ONLY = /^\d+$/;
+const YEAR_FOUR_DIGITS = /^\d{4}$/;
 
 export function parseModelYear(value: string): number | null {
   const s = value.trim();
-  if (!DIGITS_ONLY.test(s)) return null;
+  if (!YEAR_FOUR_DIGITS.test(s)) return null;
   const n = Number.parseInt(s, 10);
   if (!Number.isFinite(n) || n < 1990 || n > 2030) return null;
   return n;
