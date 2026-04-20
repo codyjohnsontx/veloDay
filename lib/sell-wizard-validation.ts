@@ -60,7 +60,7 @@ export const initialWizardFormState: WizardFormState = {
 /** Public masked serial only (e.g. WSBC****8241). Full unmasked serials are not accepted here. */
 export function isValidSerialFormat(raw: string): boolean {
   const s = raw.trim().toUpperCase();
-  const masked = /^[A-Z0-9]{2,10}\*{2,8}[A-Z0-9]{2,6}$/;
+  const masked = /^(?=.{8,}$)[A-Z0-9]{2,10}\*{2,8}[A-Z0-9]{2,6}$/;
   return masked.test(s);
 }
 
