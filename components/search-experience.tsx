@@ -12,45 +12,16 @@ import { currency, labelize } from "@/lib/format";
 import {
   defaultSearchFilters,
   filterAndSortListings,
+  filterCategoryOptions,
+  filterConditionOptions,
+  filterDisciplineOptions,
+  filterSellerOptions,
+  filterTransactionOptions,
   parseSearchFilters,
   serializeSearchFilters,
   type SearchFilters,
 } from "@/lib/search-filters";
 import type { BikeListing } from "@/lib/types";
-
-const categoryOptions: Array<"all" | SearchFilters["category"]> = [
-  "all",
-  "complete-bike",
-  "frame",
-  "wheelset",
-];
-const disciplineOptions: Array<"all" | SearchFilters["discipline"]> = [
-  "all",
-  "road",
-  "gravel",
-  "mountain",
-  "e-bike",
-];
-const conditionOptions: Array<"all" | SearchFilters["condition"]> = [
-  "all",
-  "excellent",
-  "very-good",
-  "good",
-  "fair",
-];
-const sellerOptions: Array<"all" | SearchFilters["sellerType"]> = [
-  "all",
-  "private",
-  "shop",
-  "consignment",
-  "certified-partner",
-];
-const transactionOptions: Array<"all" | SearchFilters["transactionMode"]> = [
-  "all",
-  "local-pickup",
-  "managed-shipping",
-  "inspection-partner",
-];
 
 export function SearchExperience({ listings }: { listings: BikeListing[] }) {
   const router = useRouter();
@@ -208,7 +179,7 @@ function FilterPanel({
       <SelectFilter
         label="Category"
         value={filters.category}
-        options={categoryOptions}
+        options={filterCategoryOptions}
         onChange={(value) =>
           setFilters((current) => ({
             ...current,
@@ -219,7 +190,7 @@ function FilterPanel({
       <SelectFilter
         label="Discipline"
         value={filters.discipline}
-        options={disciplineOptions}
+        options={filterDisciplineOptions}
         onChange={(value) =>
           setFilters((current) => ({
             ...current,
@@ -230,7 +201,7 @@ function FilterPanel({
       <SelectFilter
         label="Condition"
         value={filters.condition}
-        options={conditionOptions}
+        options={filterConditionOptions}
         onChange={(value) =>
           setFilters((current) => ({
             ...current,
@@ -241,7 +212,7 @@ function FilterPanel({
       <SelectFilter
         label="Seller type"
         value={filters.sellerType}
-        options={sellerOptions}
+        options={filterSellerOptions}
         onChange={(value) =>
           setFilters((current) => ({
             ...current,
@@ -252,7 +223,7 @@ function FilterPanel({
       <SelectFilter
         label="Transaction mode"
         value={filters.transactionMode}
-        options={transactionOptions}
+        options={filterTransactionOptions}
         onChange={(value) =>
           setFilters((current) => ({
             ...current,
@@ -306,7 +277,7 @@ function SelectFilter({
 }: {
   label: string;
   value: string;
-  options: string[];
+  options: readonly string[];
   onChange: (value: string) => void;
 }) {
   return (

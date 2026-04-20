@@ -35,39 +35,53 @@ export const defaultSearchFilters: SearchFilters = {
   sort: "recommended",
 };
 
-const CATEGORIES = new Set<ListingCategory | "all">([
+/** Ordered options for category filter UI and URL validation (single source of truth). */
+export const filterCategoryOptions: ReadonlyArray<"all" | ListingCategory> = [
   "all",
   "complete-bike",
   "frame",
   "wheelset",
-]);
-const DISCIPLINES = new Set<Discipline | "all">([
+];
+
+/** Ordered options for discipline filter UI and URL validation (matches `Discipline` + all). */
+export const filterDisciplineOptions: ReadonlyArray<"all" | Discipline> = [
   "all",
   "road",
   "gravel",
   "mountain",
+  "triathlon",
+  "commuter",
   "e-bike",
-]);
-const CONDITIONS = new Set<ConditionGrade | "all">([
+];
+
+export const filterConditionOptions: ReadonlyArray<"all" | ConditionGrade> = [
   "all",
   "excellent",
   "very-good",
   "good",
   "fair",
-]);
-const SELLERS = new Set<SellerType | "all">([
+];
+
+export const filterSellerOptions: ReadonlyArray<"all" | SellerType> = [
   "all",
   "private",
   "shop",
   "consignment",
   "certified-partner",
-]);
-const TXNS = new Set<TransactionMode | "all">([
+];
+
+export const filterTransactionOptions: ReadonlyArray<"all" | TransactionMode> = [
   "all",
   "local-pickup",
   "managed-shipping",
   "inspection-partner",
-]);
+];
+
+const CATEGORIES = new Set(filterCategoryOptions);
+const DISCIPLINES = new Set(filterDisciplineOptions);
+const CONDITIONS = new Set(filterConditionOptions);
+const SELLERS = new Set(filterSellerOptions);
+const TXNS = new Set(filterTransactionOptions);
 const SORTS = new Set<SortKey>([
   "recommended",
   "newest",
@@ -83,7 +97,8 @@ function clamp(n: number, min: number, max: number) {
 export type SearchParamSource = Pick<URLSearchParams, "get">;
 
 export function parseSearchFilters(params: SearchParamSource): SearchFilters {
-  const q = params.get("q") ?? "";
+  const rawQ = params.get("q") ?? "";
+  const q = rawQ.trim().slice(0, 200);
   const category = params.get("category");
   const discipline = params.get("discipline");
   const condition = params.get("condition");
@@ -101,7 +116,7 @@ export function parseSearchFilters(params: SearchParamSource): SearchFilters {
   }
 
   return {
-    query: q.slice(0, 200),
+    query: q,
     category:
       category && CATEGORIES.has(category as "all" | ListingCategory)
         ? (category as SearchFilters["category"])

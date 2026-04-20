@@ -11,6 +11,10 @@ function SearchFiltersFallback() {
       <div className="grid gap-3 rounded-lg border border-border bg-card p-3 shadow-sm md:grid-cols-[1fr_auto_auto]">
         <Skeleton className="h-11 w-full" />
         <Skeleton className="h-11 w-full md:w-40" />
+        <Skeleton
+          className="h-11 w-full md:hidden"
+          aria-hidden
+        />
       </div>
       <div className="flex flex-wrap gap-2">
         <Skeleton className="h-6 w-24" />
