@@ -35,6 +35,38 @@ const sortOptionLabels = {
   days: "Days on market",
 } satisfies Record<(typeof filterSortOptions)[number], string>;
 
+/** Keys produced by `serializeSearchFilters` — used to preserve passthrough query params (e.g. utm_*). */
+function mergeSerializedFiltersWithPassthroughParams(
+  filters: SearchFilters,
+  current: Pick<URLSearchParams, "forEach" | "keys">,
+): string {
+  const merged = new URLSearchParams(serializeSearchFilters(filters));
+  const ownedKeys = new Set(merged.keys());
+  current.forEach((value, key) => {
+    if (!ownedKeys.has(key)) {
+      merged.append(key, value);
+    }
+  });
+  return merged.toString();
+}
+
+/** Order-independent query comparison so we skip redundant `router.replace` when only param order differs. */
+function stableQueryString(search: string): string {
+  const raw = search.startsWith("?") ? search.slice(1) : search;
+  const p = new URLSearchParams(raw);
+  return [...p.entries()]
+    .sort(([ka, va], [kb, vb]) =>
+      ka === kb ? va.localeCompare(vb) : ka.localeCompare(kb),
+    )
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join("&");
+}
+
+function samePathAndQuery(aPath: string, aSearch: string, bPath: string, bSearch: string): boolean {
+  if (aPath !== bPath) return false;
+  return stableQueryString(aSearch) === stableQueryString(bSearch);
+}
+
 export function SearchExperience({ listings }: { listings: BikeListing[] }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -50,14 +82,16 @@ export function SearchExperience({ listings }: { listings: BikeListing[] }) {
   }, [filters]);
 
   useEffect(() => {
-    const qs = serializeSearchFilters(filters);
+    const qs = mergeSerializedFiltersWithPassthroughParams(filters, searchParams);
     const url = qs ? `${pathname}?${qs}` : pathname;
     if (typeof window !== "undefined") {
-      const current = `${window.location.pathname}${window.location.search}`;
-      if (current === url) return;
+      const curPath = window.location.pathname;
+      const curSearch = window.location.search;
+      const nextSearch = qs ? `?${qs}` : "";
+      if (samePathAndQuery(curPath, curSearch, pathname, nextSearch)) return;
     }
     router.replace(url, { scroll: false });
-  }, [filters, pathname, router]);
+  }, [filters, pathname, router, searchParams]);
 
   useEffect(() => {
     const fromUrl = parseSearchFilters(searchParams);
