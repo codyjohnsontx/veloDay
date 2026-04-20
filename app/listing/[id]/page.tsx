@@ -7,7 +7,6 @@ import {
   BadgeDollarSign,
   Bike,
   CalendarCheck,
-  Heart,
   MapPin,
   MessageSquare,
   ShieldCheck,
@@ -15,6 +14,7 @@ import {
   Wrench,
 } from "lucide-react";
 
+import { ListingDetailActions } from "@/components/listing-detail-actions";
 import { VerificationBadge } from "@/components/trust-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -441,17 +441,7 @@ export default async function ListingDetailPage({
                     Message seller (coming soon)
                   </Button>
                 )}
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  type="button"
-                  disabled
-                  aria-disabled="true"
-                  title="Save is coming soon"
-                >
-                  <Heart className="h-4 w-4" aria-hidden />
-                  Save (coming soon)
-                </Button>
+                <ListingDetailActions listingId={listing.id} title={listing.title} />
               </div>
             </CardContent>
           </Card>

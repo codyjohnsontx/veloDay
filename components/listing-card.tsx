@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -6,9 +8,11 @@ import {
   Heart,
   MapPin,
   MessageSquare,
+  Scale,
   Truck,
 } from "lucide-react";
 
+import { useBuyerActions } from "@/components/buyer-actions-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,11 +24,24 @@ export function ListingCard({
   listing,
   compact = false,
   priority = false,
+  showBuyerActions = true,
 }: {
   listing: BikeListing;
   compact?: boolean;
   priority?: boolean;
+  showBuyerActions?: boolean;
 }) {
+  const {
+    compareLimit,
+    compareLimitReached,
+    isCompared,
+    isSaved,
+    toggleCompare,
+    toggleSaved,
+  } = useBuyerActions();
+  const saved = isSaved(listing.id);
+  const compared = isCompared(listing.id);
+  const compareDisabled = compareLimitReached && !compared;
   const altText = `${listing.model.modelYear} ${listing.model.brand} ${listing.model.modelName}${
     listing.frameSize ? ` in ${listing.frameSize}` : ""
   } — ${listing.location}`;
@@ -54,17 +71,52 @@ export function ListingCard({
               {labelize(listing.dealScore)}
             </Badge>
           </div>
-          <span
-            className="pointer-events-none absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-ink shadow-sm backdrop-blur"
-            aria-hidden
-          >
-            <Heart className="h-4 w-4" />
-          </span>
           <div className="absolute bottom-3 left-3 rounded-full bg-background/92 px-3 py-1 text-sm font-semibold text-ink shadow-sm backdrop-blur tabular-nums">
             {currency(listing.price)}
           </div>
         </div>
       </Link>
+      {showBuyerActions ? (
+        <div className="absolute right-3 top-3 z-10 flex gap-2">
+          <button
+            type="button"
+            aria-pressed={saved}
+            aria-label={saved ? `Unsave ${listing.title}` : `Save ${listing.title}`}
+            title={saved ? "Remove saved listing" : "Save listing"}
+            onClick={() => toggleSaved(listing.id)}
+            className={`inline-flex h-9 w-9 items-center justify-center rounded-full shadow-sm backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              saved
+                ? "bg-trust text-primary-foreground"
+                : "bg-background/90 text-ink hover:bg-trust-soft"
+            }`}
+          >
+            <Heart className={saved ? "h-4 w-4 fill-current" : "h-4 w-4"} aria-hidden />
+          </button>
+          <button
+            type="button"
+            aria-pressed={compared}
+            aria-label={
+              compared ? `Remove ${listing.title} from compare` : `Compare ${listing.title}`
+            }
+            title={
+              compareDisabled
+                ? `Compare is limited to ${compareLimit} listings`
+                : compared
+                  ? "Remove from compare"
+                  : "Compare listing"
+            }
+            disabled={compareDisabled}
+            onClick={() => toggleCompare(listing.id)}
+            className={`inline-flex h-9 w-9 items-center justify-center rounded-full shadow-sm backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${
+              compared
+                ? "bg-primary text-primary-foreground"
+                : "bg-background/90 text-ink hover:bg-trust-soft"
+            }`}
+          >
+            <Scale className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+      ) : null}
       <div className="space-y-4 p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
